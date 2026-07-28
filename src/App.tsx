@@ -15,6 +15,7 @@ import {
   CONTRACT_ID,
 } from "./stellar";
 import type { ProposalData } from "./stellar";
+import { StatsPanel } from "./components/StatsPanel";
 
 
 // Default proposal IDs to watch if localStorage is empty
@@ -47,6 +48,7 @@ function App() {
   const [pendingTx, setPendingTx] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [activeView, setActiveView] = useState<"dashboard" | "stats">("dashboard");
 
   // Initialize Freighter and load globals
   useEffect(() => {
@@ -364,6 +366,16 @@ function App() {
     }
   };
 
+  const proposalStats = [
+    { key: "proposals_watched", label: "Proposals watched", value: proposals.length, subtitle: "Dashboard watchlist" },
+    { key: "created_proposals", label: "Created proposals", value: proposals.filter((proposal) => proposal.status !== -1).length, subtitle: "Found on-chain" },
+    { key: "active_proposals", label: "Active proposals", value: proposals.filter((proposal) => proposal.status === 0).length, subtitle: "Awaiting finalization" },
+    { key: "quorum_met", label: "Quorum met", value: proposals.filter((proposal) => proposal.status === 1).length, subtitle: "Eligible for bond return" },
+    { key: "slashed_proposals", label: "Slashed proposals", value: proposals.filter((proposal) => proposal.status === 2).length, subtitle: "Under quorum penalty" },
+    { key: "bond_amount", label: "Bond amount", value: bondAmount ?? 0, subtitle: "Current contract parameter" },
+    { key: "quorum_threshold", label: "Quorum threshold", value: quorum ?? 0, subtitle: "Current contract parameter" },
+  ];
+
   return (
     <>
       <div className="glow-effect"></div>
@@ -376,6 +388,9 @@ function App() {
         </div>
         
         <div className="header-stats">
+          <button className="stats-tab-btn" onClick={() => setActiveView(activeView === "stats" ? "dashboard" : "stats")}>
+            {activeView === "stats" ? "Dashboard" : "Stats"}
+          </button>
           <span className="network-badge">Stellar Testnet</span>
           {!isFreighterActive && (
             <span className="network-badge" style={{ backgroundColor: "rgba(239, 68, 68, 0.15)", color: "var(--color-slashed)", borderColor: "rgba(239, 68, 68, 0.3)" }}>
@@ -395,6 +410,18 @@ function App() {
         </div>
       </header>
 
+      {activeView === "stats" ? (
+        <main className="dashboard-container">
+          <StatsPanel
+            projectKey="proposal_bond"
+            title="Live platform stats"
+            subtitle="Redis-backed counts for wallet sessions and proposal bond lifecycle activity."
+            walletAddress={address}
+            walletConnected={!!address}
+            metrics={proposalStats}
+          />
+        </main>
+      ) : (
       <main className="dashboard-container">
         {/* Left column - Controls & Stats */}
         <section className="sidebar">
@@ -732,6 +759,7 @@ function App() {
           </div>
         </section>
       </main>
+      )}
     </>
   );
 }
