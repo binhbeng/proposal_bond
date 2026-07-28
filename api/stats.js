@@ -1,10 +1,14 @@
 import { createClient } from 'redis';
 
-const REDIS_URL = 'redis://default:M1GzHM33qkdIXBO03AlmbQX7p5aMFS0C@prose-bed-rod-77348.db.redis.io:12512';
+const REDIS_URL = process.env.REDIS_URL;
 
 let redisClient;
 
 async function getRedis() {
+  if (!REDIS_URL) {
+    throw new Error("REDIS_URL is not configured");
+  }
+
   if (!redisClient) {
     redisClient = createClient({ url: REDIS_URL });
     redisClient.on('error', (error) => console.error('Redis error', error));

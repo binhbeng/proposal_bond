@@ -75,7 +75,6 @@ export function StatsPanel({ projectKey, title, subtitle, walletAddress, walletC
       {loading && (
         <div className="stats-loading">
           <span className="spinner"></span>
-          <span>Refreshing Redis stats...</span>
         </div>
       )}
 
